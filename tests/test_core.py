@@ -20,9 +20,21 @@ def test_likelihood_hazard_accumulates_and_resets_at_zero():
     assert likelihood_hazard(0.4, -1.0) == 0.0
 
 
+@pytest.mark.parametrize("increment", [float("nan"), float("inf"), float("-inf")])
+def test_likelihood_hazard_rejects_nonfinite_increment(increment):
+    with pytest.raises(ValueError):
+        likelihood_hazard(0.4, increment)
+
+
 def test_score_hazard_uses_kappa_only_in_score_mode():
     assert score_hazard(0.5, 0.4, 0.2) == pytest.approx(0.7)
     assert score_hazard(0.1, 0.0, 0.2) == 0.0
+
+
+@pytest.mark.parametrize("score", [float("nan"), float("inf"), float("-inf")])
+def test_score_hazard_rejects_nonfinite_score(score):
+    with pytest.raises(ValueError):
+        score_hazard(0.5, score, 0.2)
 
 
 def test_coherence_index_is_monotone_transform_of_hazard():
