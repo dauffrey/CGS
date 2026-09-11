@@ -12,6 +12,9 @@ license = {text = "MIT"}
 authors = [{name = "CGS contributors"}]
 dependencies = []
 
+[project.scripts]
+cgs-synthetic = "cgs.experiment:main"
+
 [project.optional-dependencies]
 dev = ["pytest>=8,<9"]
 
