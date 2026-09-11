@@ -70,10 +70,12 @@ def likelihood_hazard(previous_hazard: float, log_likelihood_ratio: float) -> fl
     """CUSUM-like accumulation for a true log-likelihood-ratio input.
 
     CG-0.2 deliberately does not subtract kappa in likelihood mode because the
-    likelihood ratio already carries a statistical interpretation.
+    likelihood ratio already carries a statistical interpretation. Non-finite
+    estimator outputs invalidate the trajectory rather than resetting hazard.
     """
 
     _require_nonnegative(previous_hazard, "previous_hazard")
+    _require_finite(log_likelihood_ratio, "log_likelihood_ratio")
     return max(0.0, previous_hazard + log_likelihood_ratio)
 
 
@@ -81,6 +83,7 @@ def score_hazard(previous_hazard: float, score: float, kappa: float) -> float:
     """CUSUM-like accumulation for an engineered/non-likelihood score."""
 
     _require_nonnegative(previous_hazard, "previous_hazard")
+    _require_finite(score, "score")
     _require_nonnegative(kappa, "kappa")
     return max(0.0, previous_hazard + score - kappa)
 
@@ -162,6 +165,11 @@ def first_threshold_crossing(values: Iterable[float], threshold: float) -> int |
         if value >= threshold:
             return index
     return None
+
+
+def _require_finite(value: float, name: str) -> None:
+    if not isfinite(value):
+        raise ValueError(f"{name} must be finite")
 
 
 def _require_unit_interval(value: float, name: str) -> None:
