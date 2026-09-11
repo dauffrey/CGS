@@ -8,7 +8,7 @@ trajectory-level false-alarm definition.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import floor, inf, nextafter
+from math import floor, inf, isfinite, nextafter
 from statistics import median
 from typing import Sequence
 
@@ -32,6 +32,8 @@ def trajectory_false_alarm_rate(
 
     if not benign_scores:
         raise ValueError("benign_scores must contain at least one trajectory")
+    _require_finite_threshold(threshold)
+    _require_finite_score_sequences(benign_scores, "benign_scores")
     alarms = sum(
         first_threshold_crossing(scores, threshold) is not None
         for scores in benign_scores
@@ -48,7 +50,8 @@ def calibrate_threshold(
 
     The returned threshold depends only on benign calibration trajectories.
     Ties are handled conservatively: the realized calibration FAR may be below
-    alpha rather than exceed it.
+    alpha rather than exceed it. Non-finite scores are invalid experimental
+    inputs and are rejected rather than converted into misleading thresholds.
     """
 
     if not benign_scores:
@@ -57,16 +60,23 @@ def calibrate_threshold(
         raise ValueError("alpha must satisfy 0 <= alpha < 1")
     if any(len(scores) == 0 for scores in benign_scores):
         raise ValueError("each benign trajectory must contain at least one score")
+    _require_finite_score_sequences(benign_scores, "benign_scores")
 
     maxima = sorted((max(scores) for scores in benign_scores), reverse=True)
     allowed = floor(alpha * len(maxima))
 
     if allowed == 0:
-        return nextafter(max(maxima), inf)
+        threshold = nextafter(max(maxima), inf)
+    else:
+        # Put the threshold just above the first maximum that must *not* alarm.
+        boundary_value = maxima[allowed]
+        threshold = nextafter(boundary_value, inf)
 
-    # Put the threshold just above the first maximum that must *not* alarm.
-    boundary_value = maxima[allowed]
-    return nextafter(boundary_value, inf)
+    if not isfinite(threshold):
+        raise ValueError(
+            "no finite threshold can satisfy the requested false-alarm budget"
+        )
+    return threshold
 
 
 def summarize_warning_lead(
@@ -84,6 +94,8 @@ def summarize_warning_lead(
         raise ValueError("failing_scores and failure_steps must have equal length")
     if not failing_scores:
         raise ValueError("at least one failing trajectory is required")
+    _require_finite_threshold(threshold)
+    _require_finite_score_sequences(failing_scores, "failing_scores")
 
     leads: list[int] = []
     detected = 0
@@ -102,3 +114,20 @@ def summarize_warning_lead(
         median_warning_lead=float(median(leads)),
         warning_leads=tuple(leads),
     )
+
+
+def _require_finite_threshold(threshold: float) -> None:
+    if not isfinite(threshold):
+        raise ValueError("threshold must be finite")
+
+
+def _require_finite_score_sequences(
+    score_sequences: Sequence[Sequence[float]],
+    name: str,
+) -> None:
+    for trajectory_index, scores in enumerate(score_sequences):
+        for score_index, value in enumerate(scores):
+            if not isfinite(value):
+                raise ValueError(
+                    f"{name}[{trajectory_index}][{score_index}] must be finite"
+                )
