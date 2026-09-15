@@ -8,6 +8,12 @@ The project treats the Coherence Governor as an **independent runtime-assurance 
 >
 > **Early-warning principle:** Intervene on predicted loss of coherent control, not merely observed failure.
 
+## Research program role
+
+CGS is the **primary active repository for the converged runtime early-warning hypothesis**. Earlier EFGM and Artificial Homeostasis repositories remain preserved as foundational/provenance and mechanism-discovery research; their scientific results are not automatically inherited by CGS.
+
+See [`RESEARCH_LINEAGE.md`](RESEARCH_LINEAGE.md) for the cross-repository evidence boundary and [`ROADMAP.md`](ROADMAP.md) for the falsification-gated path from the current synthetic instrumentation harness to evidentiary real-agent testing, replication, intervention studies, and any later runtime-assurance prototype.
+
 ## Scientific status
 
 CGS is a research hypothesis and prototype architecture. It is **not** an established safety theorem, deployment guarantee, or substitute for deterministic security controls.
@@ -20,6 +26,8 @@ The hypothesis is useful only if it survives falsification attempts.
 
 ## Repository roadmap
 
+- `RESEARCH_LINEAGE.md` — relationship to EFGM and EFGM Artificial Homeostasis, including evidence-transfer rules.
+- `ROADMAP.md` — current falsification-gated CGS research program and stop conditions.
 - `docs/specs/CG-0.1.md` — original research architecture and terminology.
 - `docs/specs/CG-0.2.md` — corrected mathematical specification separating state and action margins.
 - `experiments/CG-EXP-0001.md` — preregistered first experiment.
